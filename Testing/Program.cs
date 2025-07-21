@@ -24,13 +24,13 @@ errorType.AddRef(errorUnion);
 // existing globals
 //var stringFmt = module.AddGlobal("stringFmt", "length: %d, data: %s");
 //var personFmt = module.AddGlobal("personFmt", "age: %i, gender: %i, first name: %s, last name: %s");
-var errorFmt = module.AddGlobal("errorFmt", "error code: %i, error message: %s\\n");
-var noErrorFmt = module.AddGlobal("noErrorFmt", "no error!\\n");
-var personErrorStr = module.AddGlobal("personErrorStr", "Person is not valid! Imagine a function returning an error or something yk how it goes.\\n");
-var personFmt = module.AddGlobal("personFmt", "age: %i, gender: %i, first name: %s, last name: %s\\n");
+var errorFmt = module.AddGlobal("error code: %i, error message: %s\\n");
+var noErrorFmt = module.AddGlobal("no error!\\n");
+var personErrorStr = module.AddGlobal("Person is not valid! Imagine a function returning an error or something yk how it goes.\\n");
+var personFmt = module.AddGlobal("age: %i, gender: %i, first name: %s, last name: %s\\n");
 
-var personFirstName = module.AddGlobal("personFirstName", "John");
-var personLastName = module.AddGlobal("personLastName", "Doe");
+var personFirstName = module.AddGlobal("John");
+var personLastName = module.AddGlobal("Doe");
 
 var printPerson = module.AddFunction("printPerson", QbeFunctionFlags.None, QbePrimitive.Int32, false, new QbeArgument(errorType, "safePersonErrorPtr"));
 {
