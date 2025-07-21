@@ -29,21 +29,26 @@ public class QbeModule
         return func;
     }
 
-    public QbeGlobalRef AddGlobal(string identifier, string content)
+    public QbeGlobalRef AddGlobal(string content)
     {
+        string identifier = GetNextIdentifier();
         _globals.Add(new QbeGlobal(identifier, content));
         
         return new QbeGlobalRef(identifier);
     }
 
-    public void AddGlobal(string identifier, IQbeTypeDefinition primitiveEnum, long intValue)
+    public QbeGlobalRef AddGlobal(IQbeTypeDefinition primitiveEnum, long intValue)
     {
+        string identifier = GetNextIdentifier();
         _globals.Add(new QbeGlobal(identifier, primitiveEnum, intValue));
+        return new QbeGlobalRef(identifier);
     }
 
-    public void AddGlobal(string identifier, IQbeTypeDefinition primitiveEnum, double floatValue)
+    public QbeGlobalRef AddGlobal(IQbeTypeDefinition primitiveEnum, double floatValue)
     {
+        string identifier = GetNextIdentifier();
         _globals.Add(new QbeGlobal(identifier, primitiveEnum, floatValue));
+        return new QbeGlobalRef(identifier);
     }
 
     public string Emit()
@@ -81,5 +86,11 @@ public class QbeModule
         QbeType type = new(identifier);
         _types.Add(type);
         return type;
+    }
+    
+    private long _identifierCounter = 0;
+    public string GetNextIdentifier()
+    {
+        return $"global_var{_identifierCounter++}";
     }
 }
