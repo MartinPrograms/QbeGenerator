@@ -1,5 +1,6 @@
 # QBE Generator
 A simple to use generator for [QBE](https://c9x.me/compile/)  
+Almost every operation in QBE is supported except for phi!  
 
 Hello World example:  
 ```c#
