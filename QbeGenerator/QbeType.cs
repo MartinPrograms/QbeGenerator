@@ -164,7 +164,7 @@ public class QbeType : IEmit, IQbeTypeDefinition
     }
 }
 
-internal record QbeTypeDefInternal(IQbeTypeDefinition? Primitive, QbeTypeDefinition? UnionItem, QbeType? RefStruct)
+public record QbeTypeDefInternal(IQbeTypeDefinition? Primitive, QbeTypeDefinition? UnionItem, QbeType? RefStruct)
 {
     public string GetValue(bool is32bit)
     {
@@ -181,6 +181,8 @@ internal record QbeTypeDefInternal(IQbeTypeDefinition? Primitive, QbeTypeDefinit
 public class QbeTypeDefinition
 {
     internal List<QbeTypeDefInternal> TypeDefinitions { get; } = new();
+    
+    public IReadOnlyList<QbeTypeDefInternal> Definitions => TypeDefinitions;
 
     public void Add(IQbeTypeDefinition prim)
     {
