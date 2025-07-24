@@ -61,10 +61,17 @@ public class QbeFunction
         }
 
         string flagsStr = string.Join(" ", flags);
+        flagsStr = string.IsNullOrEmpty(flagsStr) ? string.Empty : $"{flagsStr} ";
 
+        string varArgsStr = VarArgs ? "..." : string.Empty;
+        if (Arguments.Count > 0)
+        {
+            varArgsStr = VarArgs ? ", ..." : string.Empty;
+        }
+        
         StringBuilder sb = new StringBuilder();
         sb.AppendLine(
-            $"{flagsStr} function {(ReturnType != null ? ReturnType!.ToQbeString(is32Bit) : string.Empty)} ${Identifier}({string.Join(", ", Arguments.Select(x => x.FullDefinition(is32Bit)))}) {{");
+            $"{flagsStr}function {(ReturnType != null ? ReturnType!.ToQbeString(is32Bit) + " " : string.Empty)}${Identifier}({string.Join(", ", Arguments.Select(x => x.FullDefinition(is32Bit)))}{varArgsStr}) {{");
 
         foreach (var block in _blocks)
         {
