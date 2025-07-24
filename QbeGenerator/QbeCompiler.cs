@@ -6,27 +6,34 @@ public static class QbeCompiler
 {
     public static bool IsExecutableInPath(string fileName)
     {
-        var pathEnv = Environment.GetEnvironmentVariable("PATH");
-        if (string.IsNullOrEmpty(pathEnv))
-            return false;
-
-        var paths = pathEnv.Split(':');
-        foreach (var path in paths)
+        try
         {
-            var fullPath = Path.Combine(path, fileName);
-            if (File.Exists(fullPath) && IsExecutable(fullPath))
-                return true;
+            // Run the process to check if the executable is available in the PATH
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = "-h", // Just a dummy argument to check if it runs
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            
+            process.Start();
+            process.WaitForExit();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            // If we can't start the process, it means the executable is not found
+            return false;
         }
 
         return false;
-    }
-
-    private static bool IsExecutable(string path)
-    {
-        var fileInfo = new FileInfo(path);
-        return (fileInfo.Attributes & FileAttributes.Directory) == 0 &&
-               (new FileInfo(path).Exists &&
-                (new FileInfo(path).Attributes & FileAttributes.ReparsePoint) == 0);
     }
     
     /// <summary>
