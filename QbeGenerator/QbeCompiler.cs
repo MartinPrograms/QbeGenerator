@@ -4,18 +4,43 @@ namespace QbeGenerator;
 
 public static class QbeCompiler
 {
+    public static bool IsExecutableInPath(string fileName)
+    {
+        var pathEnv = Environment.GetEnvironmentVariable("PATH");
+        if (string.IsNullOrEmpty(pathEnv))
+            return false;
+
+        var paths = pathEnv.Split(':');
+        foreach (var path in paths)
+        {
+            var fullPath = Path.Combine(path, fileName);
+            if (File.Exists(fullPath) && IsExecutable(fullPath))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsExecutable(string path)
+    {
+        var fileInfo = new FileInfo(path);
+        return (fileInfo.Attributes & FileAttributes.Directory) == 0 &&
+               (new FileInfo(path).Exists &&
+                (new FileInfo(path).Attributes & FileAttributes.ReparsePoint) == 0);
+    }
+    
     /// <summary>
     /// Compiles the given QBE IR to assembly code.
     /// Which can be used by Clang or other assemblers to produce a binary.
     /// </summary>
     public static bool Compile(string qbeIr, out string assembly, out string? qbeError)
     {
-        if (!File.Exists("qbe"))
+        if (!IsExecutableInPath("qbe"))
         {
-            throw new FileNotFoundException(
-                "QBE compiler not found. Please ensure 'qbe' is in the current directory or in your PATH.");
+            assembly = string.Empty;
+            qbeError = "QBE compiler not found in PATH. Please install QBE and ensure it is accessible.";
+            return false; // QBE compiler not found
         }
-        
         var tempFile = Path.GetTempFileName();
         var asmOut = Path.Combine(Path.GetTempPath(), "output.s");
         try
