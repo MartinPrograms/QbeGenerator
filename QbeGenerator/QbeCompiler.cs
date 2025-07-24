@@ -8,7 +8,7 @@ public static class QbeCompiler
     /// Compiles the given QBE IR to assembly code.
     /// Which can be used by Clang or other assemblers to produce a binary.
     /// </summary>
-    public static bool Compile(string qbeIr, out string assembly, out string? qbeError)
+    public static bool Compile(string qbeIr, out string assembly, out string? qbeError, string target = "amd64_sysv")
     {
         // yk what i dont even care anymore no more checking if it exists
 
@@ -23,7 +23,7 @@ public static class QbeCompiler
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "qbe",
-                    Arguments = $"-o \"{asmOut}\" \"{tempFile}\"",
+                    Arguments = $"-o \"{asmOut}\" \"{tempFile}\" -t {target}",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
