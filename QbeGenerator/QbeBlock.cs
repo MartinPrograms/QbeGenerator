@@ -44,6 +44,11 @@ public class QbeBlock : IEmit
         Instructions.Add(new ReturnInstruction(new QbeLocalRef(value.FunctionReturnType!,value.ToString())));
     }
 
+    public void Return()
+    {
+        Instructions.Add(new ReturnInstruction());
+    }
+
     public string Emit(bool is32bit)
     {
         StringBuilder sb = new StringBuilder();
