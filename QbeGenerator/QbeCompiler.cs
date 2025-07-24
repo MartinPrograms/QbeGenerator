@@ -23,7 +23,7 @@ public static class QbeCompiler
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "qbe",
-                    Arguments = $"-o \"{asmOut}\" \"{tempFile}\" -t {target}",
+                    Arguments = $"-t {target} -o \"{asmOut}\" \"{tempFile}\"",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
