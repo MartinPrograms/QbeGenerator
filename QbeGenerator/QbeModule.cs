@@ -55,10 +55,15 @@ public class QbeModule
     {
         StringBuilder sb = new StringBuilder();
 
+        QbeTypeSorter sorter = new();
+        
         foreach (var type in _types)
         {
-            sb.AppendLine(type.Emit(Is32Bit));
+            sorter.AddType(type);
         }
+
+        var sorted = sorter.SortTypes();
+        sorted.ForEach(x => sb.AppendLine(x.Emit(Is32Bit)));
         
         foreach (var global in _globals)
         {
