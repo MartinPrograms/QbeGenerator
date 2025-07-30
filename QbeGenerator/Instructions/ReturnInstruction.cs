@@ -4,9 +4,9 @@ public class ReturnInstruction : IQbeInstruction
 {
     public string QbeRepresentation { get; } = "ret";
 
-    public QbeValue? Value;
+    public IQbeRef? Value;
 
-    public ReturnInstruction(QbeValue? value)
+    public ReturnInstruction(IQbeRef? value)
     {
         Value = value;
     }    

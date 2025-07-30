@@ -32,7 +32,7 @@ public class QbeBlock : IEmit
         Instructions.Add(inst);
     }
 
-    public void Return(QbeValue value)
+    public void Return(IQbeRef value)
     {
         Instructions.Add(new ReturnInstruction(value));
     }
