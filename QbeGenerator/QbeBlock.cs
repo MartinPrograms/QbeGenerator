@@ -249,19 +249,26 @@ public class QbeBlock : IEmit
         return new QbeLocalRef(QbePrimitive.Int32, inst.OutputVariableName);
     }
 
-    public QbeValue LoadFromType(IQbeTypeDefinition type, QbeValue prt, QbeType typeDefinition, int idx, bool is32Bit)
+    /// <summary>
+    /// Gets a value from a type definition at a certain index.
+    /// For example:
+    /// type = { i32, i32, i64 }
+    /// instantiated = alloc(type.ByteSize())
+    /// i64 lastField = LoadFromType(i64, instantiated, type, 2, false);
+    /// </summary>
+    public QbeValue LoadFromType(IQbeTypeDefinition targetType, QbeValue address, QbeType typeDefinition, int fieldIndex, bool is32Bit)
     {
-        var offset = typeDefinition.GetOffset(idx, is32Bit);
+        var offset = typeDefinition.GetOffset(fieldIndex, is32Bit);
         if (offset == 0)
         {
             // We can just call a load instruction on the pointer.
-            if (prt is IQbeRef)
+            if (address is IQbeRef)
             {
-                return Load(type, (IQbeRef)prt);
+                return Load(targetType, (IQbeRef)address);
             }
-            else if (prt is QbeLocalRef localRef)
+            else if (address is QbeLocalRef localRef)
             {
-                return Load(type, localRef);
+                return Load(targetType, localRef);
             }
             else
             {
@@ -271,16 +278,16 @@ public class QbeBlock : IEmit
         
         // Add the offset onto the pointer, we can not use the Add instruction here, as it does not support pointers.
         var identifier = _function.GetNextVariableName();
-        var addinst = new BaseArithmeticInstruction(identifier, prt, Qbe.Lit(QbePrimitive.Pointer, offset),
+        var addinst = new BaseArithmeticInstruction(identifier, address, Qbe.Lit(QbePrimitive.Pointer, offset),
             QbeBaseArithmeticOperation.Add, QbeBaseArithmeticPrimitive.Signed);
         addinst.OutputType = QbePrimitive.Pointer; // Override the output type to be a pointer. As we are adding an offset to a pointer.
         Instructions.Add(addinst);
         
         // Now we have the local reference identifier.
-        var loadInst = new LoadInstruciton(type, new QbeLocalRef(QbePrimitive.Pointer, identifier), _function.GetNextVariableName());
+        var loadInst = new LoadInstruciton(targetType, new QbeLocalRef(QbePrimitive.Pointer, identifier), _function.GetNextVariableName());
         Instructions.Add(loadInst);
         
-        return new QbeLocalRef(type, loadInst.OutputVariableName);
+        return new QbeLocalRef(targetType, loadInst.OutputVariableName);
     }
     
     public QbeValue StoreToType(IQbeTypeDefinition type, QbeValue prt, QbeValue value, QbeType typeDefinition, int idx, bool is32Bit)
