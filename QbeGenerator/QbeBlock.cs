@@ -97,7 +97,7 @@ public class QbeBlock : IEmit
     }
     
     /// <summary>
-    /// Copies p1 to p2.
+    /// Copies p2 to p1
     /// </summary>
     public void CopyTo(IQbeRef p1, QbeValue p2)
     {
