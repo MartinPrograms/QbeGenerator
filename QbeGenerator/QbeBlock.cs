@@ -17,19 +17,13 @@ public class QbeBlock : IEmit
         _function = function;
     }
 
-    public QbeLocalRef? Call(string identifier, IQbeTypeDefinition? functionReturnType, params QbeValue[] qbeArgument)
+    public QbeLocalRef? Call(string identifier, IQbeTypeDefinition? functionReturnType, int variadicStart, params QbeValue[] qbeArgument)
     {
-        var inst = new CallInstruction(identifier, functionReturnType != null ? _function.GetNextVariableName() : "", functionReturnType, qbeArgument);
+        var inst = new CallInstruction($"${identifier}", functionReturnType != null ? _function.GetNextVariableName() : "", functionReturnType, variadicStart, qbeArgument);
         Instructions.Add(inst);
         return functionReturnType != null
             ? new QbeLocalRef(functionReturnType, inst.OutputVariableName)
             : null;
-    }
-
-    public void Return(int retValue)
-    {
-        var inst = new ReturnInstruction(new QbeLiteral(QbePrimitive.Int32, retValue));
-        Instructions.Add(inst);
     }
 
     public void Return(IQbeRef value)
@@ -246,7 +240,7 @@ public class QbeBlock : IEmit
     {
         var inst = new EqualityInstruction(_function.GetNextVariableName(),lessThanOrEqual, equalityPrimitive, lRef, lit);
         Instructions.Add(inst);
-        return new QbeLocalRef(QbePrimitive.Int32, inst.OutputVariableName);
+        return new QbeLocalRef(QbePrimitive.Int32(false), inst.OutputVariableName);
     }
 
     /// <summary>
@@ -278,13 +272,13 @@ public class QbeBlock : IEmit
         
         // Add the offset onto the pointer, we can not use the Add instruction here, as it does not support pointers.
         var identifier = _function.GetNextVariableName();
-        var addinst = new BaseArithmeticInstruction(identifier, address, Qbe.Lit(QbePrimitive.Pointer, offset),
+        var addinst = new BaseArithmeticInstruction(identifier, address, Qbe.Lit(QbePrimitive.Pointer(), offset),
             QbeBaseArithmeticOperation.Add, QbeBaseArithmeticPrimitive.Signed);
-        addinst.OutputType = QbePrimitive.Pointer; // Override the output type to be a pointer. As we are adding an offset to a pointer.
+        addinst.OutputType = QbePrimitive.Pointer(); // Override the output type to be a pointer. As we are adding an offset to a pointer.
         Instructions.Add(addinst);
         
         // Now we have the local reference identifier.
-        var loadInst = new LoadInstruciton(targetType, new QbeLocalRef(QbePrimitive.Pointer, identifier), _function.GetNextVariableName());
+        var loadInst = new LoadInstruciton(targetType, new QbeLocalRef(QbePrimitive.Pointer(), identifier), _function.GetNextVariableName());
         Instructions.Add(loadInst);
         
         return new QbeLocalRef(targetType, loadInst.OutputVariableName);
@@ -313,19 +307,19 @@ public class QbeBlock : IEmit
         {
             // Add the offset onto the pointer, we can not use the Add instruction here, as it does not support pointers.
             var identifier = _function.GetNextVariableName();
-            var addinst = new BaseArithmeticInstruction(identifier, prt, Qbe.Lit(QbePrimitive.Pointer, offset),
-                QbeBaseArithmeticOperation.Add, QbeBaseArithmeticPrimitive.Signed);
-            addinst.OutputType = QbePrimitive.Pointer; // Override the output type to be a pointer. As we are adding an offset to a pointer.
+            var addinst = new BaseArithmeticInstruction(identifier, prt, Qbe.Lit(QbePrimitive.Pointer(), offset),
+                QbeBaseArithmeticOperation.Add, QbeBaseArithmeticPrimitive.Unsigned);
+            addinst.OutputType = QbePrimitive.Pointer(); // Override the output type to be a pointer. As we are adding an offset to a pointer.
             Instructions.Add(addinst);
             
             // Now we have the local reference identifier.
-            Store(new QbeLocalRef(QbePrimitive.Pointer, identifier), value);
+            Store(new QbeLocalRef(QbePrimitive.Pointer(), identifier), value);
         }
 
         return value;
     }
 
-    public QbeValue GetFieldPtr(IQbeTypeDefinition type, QbeValue ptr, QbeType typeDefinition, int idx, bool is32Bit)
+    public QbeValue GetFieldPtr(QbeValue ptr, QbeType typeDefinition, int idx, bool is32Bit)
     {
         var offset = typeDefinition.GetOffset(idx, is32Bit);
         if (offset == 0)
@@ -347,11 +341,11 @@ public class QbeBlock : IEmit
         
         // Add the offset onto the pointer, we can not use the Add instruction here, as it does not support pointers.
         var identifier = _function.GetNextVariableName();
-        var addinst = new BaseArithmeticInstruction(identifier, ptr, Qbe.Lit(QbePrimitive.Pointer, offset),
+        var addinst = new BaseArithmeticInstruction(identifier, ptr, Qbe.Lit(QbePrimitive.Pointer(), offset),
             QbeBaseArithmeticOperation.Add, QbeBaseArithmeticPrimitive.Signed);
-        addinst.OutputType = QbePrimitive.Pointer; // Override the output type to be a pointer. As we are adding an offset to a pointer.
+        addinst.OutputType = QbePrimitive.Pointer(); // Override the output type to be a pointer. As we are adding an offset to a pointer.
         Instructions.Add(addinst);
         
-        return new QbeLocalRef(QbePrimitive.Pointer, identifier);
+        return new QbeLocalRef(QbePrimitive.Pointer(), identifier);
     }
 }

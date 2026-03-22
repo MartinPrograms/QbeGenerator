@@ -34,7 +34,7 @@ public class AllocInstruction : IQbeInstruction
         OutputVariableName = outputVariableName;
         Size = size;
         Alignment = alignment;
-        OutputType = QbePrimitive.Pointer;
+        OutputType = QbePrimitive.Pointer();
     }
     
     public string Emit(bool is32bit)

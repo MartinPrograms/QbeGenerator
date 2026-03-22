@@ -4,6 +4,7 @@ public interface IQbeTypeDefinition
 {
     public string ToQbeString(bool is32bit);
     public bool IsInteger();
+    public bool IsSignedInteger();
     public bool IsFloat();
     public long ByteSize(bool is32Bit);
     public bool IsEqual(IQbeTypeDefinition other)

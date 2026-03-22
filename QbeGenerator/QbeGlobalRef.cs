@@ -6,7 +6,7 @@ public class QbeGlobalRef : QbeValue, IQbeRef
 
     public QbeGlobalRef(string identifier)
     {
-        PrimitiveEnum = QbePrimitive.Pointer;
+        PrimitiveEnum = QbePrimitive.Pointer();
         Identifier = identifier;
     }
     

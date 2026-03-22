@@ -25,8 +25,8 @@ public class QbeLiteral : QbeValue
         }
         else if (PrimitiveEnum.IsFloat())
         {
-            if (PrimitiveEnum == QbePrimitive.Float) return $"s_{_floatValue}";
-            if (PrimitiveEnum == QbePrimitive.Double) return $"d_{_floatValue}";
+            if ((QbePrimitive)PrimitiveEnum == QbePrimitive.Float()) return $"s_{_floatValue}";
+            if ((QbePrimitive)PrimitiveEnum == QbePrimitive.Double()) return $"d_{_floatValue}";
         }
 
         throw new Exception("Type is not of integer, or float.");

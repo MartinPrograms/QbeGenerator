@@ -145,10 +145,16 @@ public class QbeType : IEmit, IQbeTypeDefinition
 
     public string ToQbeString(bool is32Bit)
     {
-        return Qbe.TypeDef(Identifier);
+        // A struct is a reference type, so we return a pointer to it.
+        return QbePrimitive.Pointer().ToQbeString(is32Bit);
     }
 
     public bool IsInteger()
+    {
+        return false;
+    }
+    
+    public bool IsSignedInteger()
     {
         return false;
     }

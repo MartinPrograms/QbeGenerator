@@ -14,10 +14,12 @@ public enum QbePrimitiveEnum
 public record QbePrimitive : IQbeTypeDefinition
 {
     public QbePrimitiveEnum PrimitiveEnum { get; }
+    private bool _isSigned = false;
 
-    public QbePrimitive(QbePrimitiveEnum primitiveEnum)
+    public QbePrimitive(QbePrimitiveEnum primitiveEnum, bool isSigned = false)
     {
         PrimitiveEnum = primitiveEnum;
+        _isSigned = isSigned;
     }
 
     public string ToQbeString(bool is32bit)
@@ -30,6 +32,11 @@ public record QbePrimitive : IQbeTypeDefinition
         return PrimitiveEnum.IsInteger();
     }
 
+    public bool IsSignedInteger()
+    {
+        return _isSigned;
+    }
+
     public bool IsFloat()
     {
         return PrimitiveEnum.IsFloat();
@@ -40,13 +47,13 @@ public record QbePrimitive : IQbeTypeDefinition
         return PrimitiveEnum.ByteSize(is32Bit);
     }
 
-    public static QbePrimitive Int32 => new QbePrimitive(QbePrimitiveEnum.Int32);
-    public static QbePrimitive Int64 => new QbePrimitive(QbePrimitiveEnum.Int64);
-    public static QbePrimitive Float => new QbePrimitive(QbePrimitiveEnum.Float);
-    public static QbePrimitive Double => new QbePrimitive(QbePrimitiveEnum.Double);
-    public static QbePrimitive Byte => new QbePrimitive(QbePrimitiveEnum.Byte);
-    public static QbePrimitive Int16 => new QbePrimitive(QbePrimitiveEnum.Int16);
-    public static QbePrimitive Pointer => new QbePrimitive(QbePrimitiveEnum.Pointer);
+    public static QbePrimitive Int32(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Int32, isSigned);
+    public static QbePrimitive Int64(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Int64, isSigned);
+    public static QbePrimitive Float() => new QbePrimitive(QbePrimitiveEnum.Float);
+    public static QbePrimitive Double() => new QbePrimitive(QbePrimitiveEnum.Double);
+    public static QbePrimitive Byte(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Byte, isSigned);
+    public static QbePrimitive Int16(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Int16, isSigned);
+    public static QbePrimitive Pointer() => new QbePrimitive(QbePrimitiveEnum.Pointer);
     public static QbePrimitive FromString(string str)
     {
         return new QbePrimitive(str.ToQbePrimitive());
