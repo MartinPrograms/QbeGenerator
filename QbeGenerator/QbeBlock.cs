@@ -348,4 +348,18 @@ public class QbeBlock : IEmit
         
         return new QbeLocalRef(QbePrimitive.Pointer(), identifier);
     }
+
+    public bool HasTerminator()
+    {
+        // Check if there is an unconditional jump, or a return instruction as the last instruction in the block.
+        if (Instructions.Count == 0)             return false;
+        var lastInst = Instructions[Instructions.Count - 1];
+        return lastInst is JumpInstruction jumpInst && jumpInst.Type == JumpType.Unconditional ||
+               lastInst is ReturnInstruction;
+    }
+
+    public void Jump(QbeBlock peek)
+    {
+        Instructions.Add(new JumpInstruction(peek.Identifier, JumpType.Unconditional));
+    }
 }
