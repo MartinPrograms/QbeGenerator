@@ -234,11 +234,33 @@ public class QbeBlock : IEmit
     public void JumpIfNotZero(QbeValue lRef, string falseLabel, string trueLabel)
     {
         Instructions.Add(new JumpInstruction(trueLabel, JumpType.Conditional, lRef, falseLabel));
+    }    
+    
+    public void JumpIfNotZero(QbeValue lRef, QbeBlock falseBlock, QbeBlock trueBlock)
+    {
+        Instructions.Add(new JumpInstruction(trueBlock.Identifier, JumpType.Conditional, lRef, falseBlock.Identifier));
     }
 
-    public QbeValue Equality(EqualityType lessThanOrEqual, EqualityPrimitive equalityPrimitive, QbeValue lRef, QbeValue lit)
+    public QbeValue Equality(EqualityType equality, EqualityPrimitive equalityPrimitive, QbeValue left, QbeValue right)
     {
-        var inst = new EqualityInstruction(_function.GetNextVariableName(),lessThanOrEqual, equalityPrimitive, lRef, lit);
+        var inst = new EqualityInstruction(_function.GetNextVariableName(),equality, equalityPrimitive, left, right);
+        Instructions.Add(inst);
+        return new QbeLocalRef(QbePrimitive.Int32(false), inst.OutputVariableName);
+    }
+
+    public QbeValue Equality(EqualityType equality, QbeValue left, QbeValue right)
+    {
+        EqualityPrimitive primitive;
+        if (left.PrimitiveEnum.IsFloat() && right.PrimitiveEnum.IsFloat())
+            primitive = EqualityPrimitive.Float;
+        else if (left.PrimitiveEnum.IsSignedInteger() && right.PrimitiveEnum.IsSignedInteger())
+            primitive = EqualityPrimitive.Int;
+        else if (left.PrimitiveEnum.IsInteger() && right.PrimitiveEnum.IsInteger())
+            primitive = EqualityPrimitive.UnsignedInt;
+        else 
+            throw new Exception("Tried to compare two values with an unsupported primitive type for equality. Left: " + left.PrimitiveEnum + " Right: " + right.PrimitiveEnum);
+        
+        var inst = new EqualityInstruction(_function.GetNextVariableName(), equality, primitive, left, right);
         Instructions.Add(inst);
         return new QbeLocalRef(QbePrimitive.Int32(false), inst.OutputVariableName);
     }
@@ -354,7 +376,7 @@ public class QbeBlock : IEmit
         // Check if there is an unconditional jump, or a return instruction as the last instruction in the block.
         if (Instructions.Count == 0)             return false;
         var lastInst = Instructions[Instructions.Count - 1];
-        return lastInst is JumpInstruction jumpInst && jumpInst.Type == JumpType.Unconditional ||
+        return lastInst is JumpInstruction ||
                lastInst is ReturnInstruction;
     }
 

@@ -1,6 +1,6 @@
 namespace QbeGenerator;
 
-public abstract class QbeValue : IQbeRef
+public abstract record QbeValue : IQbeRef
 {
     public IQbeTypeDefinition PrimitiveEnum;
     public abstract string GetValue();

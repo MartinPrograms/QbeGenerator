@@ -1,6 +1,6 @@
 namespace QbeGenerator;
 
-public class QbeLocalRef : QbeValue, IQbeRef
+public record QbeLocalRef : QbeValue, IQbeRef
 {
     public string Identifier;
 

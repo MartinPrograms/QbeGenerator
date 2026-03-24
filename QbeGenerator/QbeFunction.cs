@@ -84,6 +84,9 @@ public class QbeFunction
 
     public QbeBlock BuildBlock(string label)
     {
+        if (_blocks.Any(x => x.Identifier == label))
+            label = $"{label}_{_blocks.Count(x => x.Identifier.StartsWith(label))}";
+        
         var block = new QbeBlock(label, this);
         _blocks.Add(block);
         return block;

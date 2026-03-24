@@ -1,6 +1,6 @@
 namespace QbeGenerator;
 
-public class QbeLiteral : QbeValue
+public record QbeLiteral : QbeValue
 {
     private long _intValue;
     private double _floatValue;

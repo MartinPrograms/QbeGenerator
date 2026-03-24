@@ -70,7 +70,7 @@ public class EqualityInstruction : IQbeInstruction
         Rhs = rhs;
         OutputVariableName = outputVariableName;
 
-        if (lhs.PrimitiveEnum != rhs.PrimitiveEnum)
+        if (!lhs.PrimitiveEnum.IsEqual(rhs.PrimitiveEnum))
             throw new Exception("Type mismatch between LHS and RHS in equality instruction");
     }
     
