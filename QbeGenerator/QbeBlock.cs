@@ -384,4 +384,136 @@ public class QbeBlock : IEmit
     {
         Instructions.Add(new JumpInstruction(peek.Identifier, JumpType.Unconditional));
     }
+
+    // Convert from one primitive type to another. For example from i32 to f32.
+    // This function automatically determines the correct conversion operation to use based on the source, and target! When it fails it bitcasts as a fallback!
+    
+    /*public enum QbeConversionOperation
+       {
+           ExtendSignedWord, // extsw
+           ExtendUnsignedWord, // extuw
+           ExtendSignedHalf, // extsh
+           ExtendUnsignedHalf, // extuh
+           ExtendSignedByte, // extsb
+           ExtendUnsignedByte, // extub
+           ExtendSingle, // exts
+           TruncateDouble, // truncd
+           SingleToSignedInt, // stosi
+           SingleToUnsignedInt, // stoui
+           DoubleToSignedInt, // dtosi
+           DoubleToUnsignedInt, // dtoui
+           SignedWordToFloat, // swtof
+           UnsignedWordToFloat, // uwtof
+           SignedLongToFloat, // sltof
+           UnsignedLongToFloat // ultof
+       } 
+    */
+    public QbeValue Convert(QbeValue toConvert, IQbeTypeDefinition targetType)
+    {
+        if (toConvert.PrimitiveEnum.IsEqual(targetType))
+            return toConvert; // No conversion needed.
+        
+        QbeConversionOperation op = QbeConversionOperation.ExtendSingle; // Default value, will be overridden before use.
+        
+        bool isExtension = toConvert.PrimitiveEnum.ByteSize(false) < targetType.ByteSize(false);
+        bool isFloatingPoint = toConvert.PrimitiveEnum.IsFloat() && targetType.IsFloat();
+        bool isIntegerToFloat = toConvert.PrimitiveEnum.IsInteger() && targetType.IsFloat();
+        bool isFloatToInteger = toConvert.PrimitiveEnum.IsFloat() && targetType.IsInteger();
+        
+        if (isExtension)
+        {
+            if (toConvert.PrimitiveEnum.IsSignedInteger() && targetType.IsSignedInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    1 => QbeConversionOperation.ExtendSignedByte,
+                    2 => QbeConversionOperation.ExtendSignedHalf,
+                    4 => QbeConversionOperation.ExtendSignedWord,
+                    _ => throw new Exception("Unsupported byte size for extension: " + toConvert.PrimitiveEnum.ByteSize(false))
+                };
+            else if (toConvert.PrimitiveEnum.IsInteger() && targetType.IsInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    1 => QbeConversionOperation.ExtendUnsignedByte,
+                    2 => QbeConversionOperation.ExtendUnsignedHalf,
+                    4 => QbeConversionOperation.ExtendUnsignedWord,
+                    _ => throw new Exception("Unsupported byte size for extension: " + toConvert.PrimitiveEnum.ByteSize(false))
+                };
+            else if (isFloatingPoint)
+                op = QbeConversionOperation.ExtendSingle;
+            else
+                throw new Exception($"Unsupported extension from {toConvert.PrimitiveEnum} to {targetType}");
+        }
+        else if (isFloatToInteger)
+        {
+            if (targetType.IsSignedInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SingleToSignedInt,
+                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.DoubleToSignedInt,
+                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SingleToSignedInt,
+                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.DoubleToSignedInt,
+                    _ => throw new Exception("Unsupported float to int conversion from " + toConvert.PrimitiveEnum +
+                                             " to " + targetType)
+                };
+            else if (targetType.IsInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SingleToUnsignedInt,
+                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.DoubleToUnsignedInt,
+                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SingleToUnsignedInt,
+                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.DoubleToUnsignedInt,
+                    _ => throw new Exception("Unsupported float to int conversion from " + toConvert.PrimitiveEnum +
+                                             " to " + targetType)
+                };
+        }
+        else if (isIntegerToFloat)
+        {
+            if (toConvert.PrimitiveEnum.IsSignedInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SignedWordToFloat,
+                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SignedLongToFloat,
+                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SignedWordToFloat,
+                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SignedLongToFloat,
+                    _ => throw new Exception("Unsupported int to float conversion from " + toConvert.PrimitiveEnum +
+                                             " to " + targetType)
+                };
+            else if (toConvert.PrimitiveEnum.IsInteger())
+                op = toConvert.PrimitiveEnum.ByteSize(false) switch
+                {
+                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.UnsignedWordToFloat,
+                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.UnsignedLongToFloat,
+                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.UnsignedWordToFloat,
+                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.UnsignedLongToFloat,
+                    _ => throw new Exception("Unsupported int to float conversion from " + toConvert.PrimitiveEnum +
+                                             " to " + targetType)
+                };
+        }
+        else if (isFloatingPoint)
+        {
+            op = QbeConversionOperation.ExtendSingle;
+        }
+        else if (toConvert.PrimitiveEnum.ByteSize(false) > targetType.ByteSize(false))
+        {
+            op = QbeConversionOperation.TruncateDouble;
+        }
+        else
+        {
+            // We can not convert between these two types, try bitcasting as a fallback.
+            var bitcasted = Bitcast(toConvert, targetType);
+            bitcasted.PrimitiveEnum = targetType;
+            return bitcasted;
+        }
+
+        var converted = Convert(toConvert, op);
+        converted.PrimitiveEnum = targetType;
+        return converted;
+    }
+    
+    public QbeValue Bitcast(QbeValue toConvert, IQbeTypeDefinition targetType)
+    {
+        var output = new QbeLocalRef(targetType, _function.GetNextVariableName());
+        Instructions.Add(new CastInstruction(toConvert, targetType, output.Identifier));
+        return output;
+    }
 }

@@ -22,7 +22,7 @@ public record QbePrimitive : IQbeTypeDefinition
         _isSigned = isSigned;
     }
 
-    public string ToQbeString(bool is32bit)
+    public string ToQbeString(bool is32bit, bool isAggregate = false)
     {
         return PrimitiveEnum.ToQbeString(is32bit);
     }

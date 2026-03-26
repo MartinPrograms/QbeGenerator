@@ -17,6 +17,6 @@ public class CastInstruction : IQbeInstruction
     
     public string Emit(bool is32bit)
     {
-        return $"%{OutputVariableName} ={PrimitiveEnum.ToQbeString(is32bit)} {QbeRepresentation}{PrimitiveEnum.ToQbeString(is32bit)} {Value.GetValue()}";
+        return $"%{OutputVariableName} ={PrimitiveEnum.ToQbeString(is32bit)} {QbeRepresentation} {Value.GetValue()}";
     }
 }

@@ -50,6 +50,46 @@ public enum QbeConversionOperation
 
 public class ConversionInstruction : IQbeInstruction
 {
+    private static Dictionary<QbeConversionOperation, string> _operationToQbeString = new()
+    {
+        { QbeConversionOperation.ExtendSignedWord, "extsw" },
+        { QbeConversionOperation.ExtendUnsignedWord, "extuw" },
+        { QbeConversionOperation.ExtendSignedHalf, "extsh" },
+        { QbeConversionOperation.ExtendUnsignedHalf, "extuh" },
+        { QbeConversionOperation.ExtendSignedByte, "extsb" },
+        { QbeConversionOperation.ExtendUnsignedByte, "extub" },
+        { QbeConversionOperation.ExtendSingle, "exts" },
+        { QbeConversionOperation.TruncateDouble, "truncd" },
+        { QbeConversionOperation.SingleToSignedInt, "stosi" },
+        { QbeConversionOperation.SingleToUnsignedInt, "stoui" },
+        { QbeConversionOperation.DoubleToSignedInt, "dtosi" },
+        { QbeConversionOperation.DoubleToUnsignedInt, "dtoui" },
+        { QbeConversionOperation.SignedWordToFloat, "swtof" },
+        { QbeConversionOperation.UnsignedWordToFloat, "uwtof" },
+        { QbeConversionOperation.SignedLongToFloat, "sltof" },
+        { QbeConversionOperation.UnsignedLongToFloat, "ultof" }
+    };
+
+    private static Dictionary<QbeConversionOperation, IQbeTypeDefinition> _resultTypeMap = new()
+    {
+        { QbeConversionOperation.ExtendSignedWord, QbePrimitive.Int64(true) },
+        { QbeConversionOperation.ExtendUnsignedWord, QbePrimitive.Int64(false) },
+        { QbeConversionOperation.ExtendSignedHalf, QbePrimitive.Int32(true) },
+        { QbeConversionOperation.ExtendUnsignedHalf, QbePrimitive.Int32(false) },
+        { QbeConversionOperation.ExtendSignedByte, QbePrimitive.Int32(true) },
+        { QbeConversionOperation.ExtendUnsignedByte, QbePrimitive.Int32(false) },
+        { QbeConversionOperation.ExtendSingle, QbePrimitive.Double() },
+        { QbeConversionOperation.TruncateDouble, QbePrimitive.Float() },
+        { QbeConversionOperation.SingleToSignedInt, QbePrimitive.Int32(true) },
+        { QbeConversionOperation.SingleToUnsignedInt, QbePrimitive.Int32(false) },
+        { QbeConversionOperation.DoubleToSignedInt, QbePrimitive.Int64(true) },
+        { QbeConversionOperation.DoubleToUnsignedInt, QbePrimitive.Int64(false) },
+        { QbeConversionOperation.SignedWordToFloat, QbePrimitive.Float() },
+        { QbeConversionOperation.UnsignedWordToFloat, QbePrimitive.Float() },
+        { QbeConversionOperation.SignedLongToFloat, QbePrimitive.Float() },
+        { QbeConversionOperation.UnsignedLongToFloat, QbePrimitive.Float() }
+    };
+    
     public string QbeRepresentation { get; } = "conversion";
 
     public QbeValue InputValue;
@@ -70,6 +110,6 @@ public class ConversionInstruction : IQbeInstruction
 
     public string Emit(bool is32bit)
     {
-        return $"{QbeRepresentation} {InputValue.PrimitiveEnum.ToQbeString(is32bit)} {InputValue.GetValue()}, {OutputVariable}, {Operation}";
+        return $"%{OutputVariable} ={_resultTypeMap[Operation].ToQbeString(is32bit)} {_operationToQbeString[Operation]} {InputValue.GetValue()}";
     }
 }

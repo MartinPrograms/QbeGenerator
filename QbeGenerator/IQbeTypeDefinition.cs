@@ -2,7 +2,7 @@ namespace QbeGenerator;
 
 public interface IQbeTypeDefinition
 {
-    public string ToQbeString(bool is32bit);
+    public string ToQbeString(bool is32bit, bool isAggregate = false);
     public bool IsInteger();
     public bool IsSignedInteger();
     public bool IsFloat();

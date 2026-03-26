@@ -143,8 +143,14 @@ public class QbeType : IEmit, IQbeTypeDefinition
         return size;
     }
 
-    public string ToQbeString(bool is32Bit)
+    public string ToQbeString(bool is32Bit, bool isAggregate = false)
     {
+        if (isAggregate)
+        {
+            // If this is being called from an aggregate, we return the struct as an identifier.
+            return Qbe.TypeDef(Identifier);
+        }
+        
         // A struct is a reference type, so we return a pointer to it.
         return QbePrimitive.Pointer().ToQbeString(is32Bit);
     }
@@ -172,10 +178,10 @@ public class QbeType : IEmit, IQbeTypeDefinition
 
 public record QbeTypeDefInternal(IQbeTypeDefinition? Primitive, QbeTypeDefinition? UnionItem, QbeType? RefStruct)
 {
-    public string GetValue(bool is32bit)
+    public string GetValue(bool is32bit, bool isAggregate = false)
     {
         if (Primitive != null)
-            return Primitive.ToQbeString(is32bit);
+            return Primitive.ToQbeString(is32bit, isAggregate);
         if (UnionItem != null)
             return UnionItem.GetValue(is32bit);
         if (RefStruct != null)
@@ -217,7 +223,7 @@ public class QbeTypeDefinition
 
         foreach (var typedef in TypeDefinitions)
         {
-            var value = typedef.GetValue(is32bit);
+            var value = typedef.GetValue(is32bit, true);
             sb.Append(value);
             if (typedef.UnionItem == null)
                 sb.Append(", ");
