@@ -24,7 +24,7 @@ public class BitArithmeticInstruction : IQbeInstruction
         Lhs = lhs;
         Rhs = rhs;
         
-        if (lhs.PrimitiveEnum != rhs.PrimitiveEnum)
+        if (lhs.PrimitiveEnum.IsEqual(rhs.PrimitiveEnum) == false)
         {
             throw new ArgumentException("LHS and RHS must have the same primitive type.");
         }

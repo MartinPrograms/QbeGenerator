@@ -7,6 +7,7 @@ public interface IQbeTypeDefinition
     public bool IsSignedInteger();
     public bool IsFloat();
     public long ByteSize(bool is32Bit);
+    public long GetAlignment(bool is32Bit);
     public bool IsEqual(IQbeTypeDefinition other)
     {
         if (other == null) return false;

@@ -272,9 +272,9 @@ public class QbeBlock : IEmit
     /// instantiated = alloc(type.ByteSize())
     /// i64 lastField = LoadFromType(i64, instantiated, type, 2, false);
     /// </summary>
-    public QbeValue LoadFromType(IQbeTypeDefinition targetType, QbeValue address, QbeType typeDefinition, int fieldIndex, bool is32Bit)
+    public QbeValue LoadFromType(IQbeTypeDefinition targetType, QbeValue address, QbeAggregateType aggregateTypeDefinition, int fieldIndex, bool is32Bit)
     {
-        var offset = typeDefinition.GetOffset(fieldIndex, is32Bit);
+        var offset = aggregateTypeDefinition.GetOffset(fieldIndex, is32Bit);
         if (offset == 0)
         {
             // We can just call a load instruction on the pointer.
@@ -306,9 +306,9 @@ public class QbeBlock : IEmit
         return new QbeLocalRef(targetType, loadInst.OutputVariableName);
     }
     
-    public QbeValue StoreToType(IQbeTypeDefinition type, QbeValue prt, QbeValue value, QbeType typeDefinition, int idx, bool is32Bit)
+    public QbeValue StoreToType(IQbeTypeDefinition type, QbeValue prt, QbeValue value, QbeAggregateType aggregateTypeDefinition, int idx, bool is32Bit)
     {
-        var offset = typeDefinition.GetOffset(idx, is32Bit);
+        var offset = aggregateTypeDefinition.GetOffset(idx, is32Bit);
         if (offset == 0)
         {
             // We can just call a store instruction on the pointer.
@@ -341,9 +341,9 @@ public class QbeBlock : IEmit
         return value;
     }
 
-    public QbeValue GetFieldPtr(QbeValue ptr, QbeType typeDefinition, int idx, bool is32Bit)
+    public QbeValue GetFieldPtr(QbeValue ptr, QbeAggregateType aggregateTypeDefinition, int idx, bool is32Bit)
     {
-        var offset = typeDefinition.GetOffset(idx, is32Bit);
+        var offset = aggregateTypeDefinition.GetOffset(idx, is32Bit);
         if (offset == 0)
         {
             // We can just return the pointer.
@@ -515,5 +515,26 @@ public class QbeBlock : IEmit
         var output = new QbeLocalRef(targetType, _function.GetNextVariableName());
         Instructions.Add(new CastInstruction(toConvert, targetType, output.Identifier));
         return output;
+    }
+
+    public QbeValue And(QbeValue left, QbeValue right)
+    {
+        var identifier = _function.GetNextVariableName();
+        Instructions.Add(new BitArithmeticInstruction(identifier, left, right, QbeBitArithmeticOperation.And));
+        return new QbeLocalRef(left.PrimitiveEnum, identifier);
+    }
+
+    public QbeValue Or(QbeValue left, QbeValue right)
+    {
+        var identifier = _function.GetNextVariableName();
+        Instructions.Add(new BitArithmeticInstruction(identifier, left, right, QbeBitArithmeticOperation.Or));
+        return new QbeLocalRef(left.PrimitiveEnum, identifier);
+    }
+
+    public QbeValue Not(QbeValue operand)
+    {
+        var identifier = _function.GetNextVariableName();
+        Instructions.Add(new BitArithmeticInstruction(identifier, operand, null, QbeBitArithmeticOperation.Xor));
+        return new QbeLocalRef(operand.PrimitiveEnum, identifier);
     }
 }

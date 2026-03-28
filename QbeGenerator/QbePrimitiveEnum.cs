@@ -47,6 +47,11 @@ public record QbePrimitive : IQbeTypeDefinition
         return PrimitiveEnum.ByteSize(is32Bit);
     }
 
+    public long GetAlignment(bool is32Bit)
+    {
+        return ByteSize(is32Bit);
+    }
+
     public static QbePrimitive Int32(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Int32, isSigned);
     public static QbePrimitive Int64(bool isSigned) => new QbePrimitive(QbePrimitiveEnum.Int64, isSigned);
     public static QbePrimitive Float() => new QbePrimitive(QbePrimitiveEnum.Float);

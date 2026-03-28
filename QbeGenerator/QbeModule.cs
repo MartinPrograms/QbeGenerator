@@ -5,7 +5,9 @@ namespace QbeGenerator;
 
 public class QbeModule
 {
-    private List<QbeType> _types;
+    private List<QbeAggregateType> _types;
+    public IReadOnlyList<QbeAggregateType> Types => _types;
+    
     private List<QbeGlobal> _globals;
     private List<QbeFunction> _functions;
     private List<QbeFunction> _externals;
@@ -15,7 +17,7 @@ public class QbeModule
     {
         Is32Bit = is32bit;
 
-        _types = new List<QbeType>();
+        _types = new List<QbeAggregateType>();
         _globals = new List<QbeGlobal>();
         _functions = new List<QbeFunction>();
         _externals = new List<QbeFunction>();
@@ -54,16 +56,6 @@ public class QbeModule
     public string Emit()
     {
         StringBuilder sb = new StringBuilder();
-
-        QbeTypeSorter sorter = new();
-        
-        foreach (var type in _types)
-        {
-            sorter.AddType(type);
-        }
-
-        var sorted = sorter.SortTypes();
-        sorted.ForEach(x => sb.AppendLine(x.Emit(Is32Bit)));
         
         foreach (var global in _globals)
         {
@@ -75,7 +67,7 @@ public class QbeModule
             sb.AppendLine(function.Emit(Is32Bit));
         }
 
-        sb.AppendLine("# QbeGenerator - m");
+        sb.AppendLine("# QbeGenerator - k");
         sb.AppendLine($"# {DateTime.Now.ToLongTimeString()}");
 
         return sb.ToString();
@@ -86,11 +78,11 @@ public class QbeModule
         return _functions.Exists(x => x.Identifier == "main" && x.Flags.HasFlag(QbeFunctionFlags.Export));
     }
 
-    public QbeType AddType(string identifier)
+    public QbeAggregateType AddType(string identifier)
     {
-        QbeType type = new(identifier);
-        _types.Add(type);
-        return type;
+        QbeAggregateType aggregateType = new(identifier);
+        _types.Add(aggregateType);
+        return aggregateType;
     }
     
     private long _identifierCounter = 0;
