@@ -17,9 +17,9 @@ public class QbeBlock : IEmit
         _function = function;
     }
 
-    public QbeLocalRef? Call(string identifier, IQbeTypeDefinition? functionReturnType, int variadicStart, params QbeValue[] qbeArgument)
+    public QbeLocalRef? Call(string identifier, bool isFunctionPointer, IQbeTypeDefinition? functionReturnType, int variadicStart, params QbeValue[] qbeArgument)
     {
-        var inst = new CallInstruction($"${identifier}", functionReturnType != null ? _function.GetNextVariableName() : "", functionReturnType, variadicStart, qbeArgument);
+        var inst = new CallInstruction($"{(isFunctionPointer ? "%" : "$")}{identifier}", functionReturnType != null ? _function.GetNextVariableName() : "", functionReturnType, variadicStart, qbeArgument);
         Instructions.Add(inst);
         return functionReturnType != null
             ? new QbeLocalRef(functionReturnType, inst.OutputVariableName)
@@ -420,7 +420,7 @@ public class QbeBlock : IEmit
         bool isIntegerToFloat = toConvert.PrimitiveEnum.IsInteger() && targetType.IsFloat();
         bool isFloatToInteger = toConvert.PrimitiveEnum.IsFloat() && targetType.IsInteger();
         
-        if (isExtension)
+        if (isExtension && !isFloatingPoint && !isIntegerToFloat && !isFloatToInteger)
         {
             if (toConvert.PrimitiveEnum.IsSignedInteger() && targetType.IsSignedInteger())
                 op = toConvert.PrimitiveEnum.ByteSize(false) switch
@@ -468,26 +468,37 @@ public class QbeBlock : IEmit
         }
         else if (isIntegerToFloat)
         {
-            if (toConvert.PrimitiveEnum.IsSignedInteger())
-                op = toConvert.PrimitiveEnum.ByteSize(false) switch
-                {
-                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SignedWordToFloat,
-                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.SignedLongToFloat,
-                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SignedWordToFloat,
-                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.SignedLongToFloat,
-                    _ => throw new Exception("Unsupported int to float conversion from " + toConvert.PrimitiveEnum +
-                                             " to " + targetType)
-                };
-            else if (toConvert.PrimitiveEnum.IsInteger())
-                op = toConvert.PrimitiveEnum.ByteSize(false) switch
-                {
-                    4 when targetType.ByteSize(false) == 4 => QbeConversionOperation.UnsignedWordToFloat,
-                    8 when targetType.ByteSize(false) == 4 => QbeConversionOperation.UnsignedLongToFloat,
-                    4 when targetType.ByteSize(false) == 8 => QbeConversionOperation.UnsignedWordToFloat,
-                    8 when targetType.ByteSize(false) == 8 => QbeConversionOperation.UnsignedLongToFloat,
-                    _ => throw new Exception("Unsupported int to float conversion from " + toConvert.PrimitiveEnum +
-                                             " to " + targetType)
-                };
+            // First cast to i64
+            QbeValue intermediate = null;
+            if (toConvert.PrimitiveEnum.ByteSize(false) < 8)
+            {
+                var identifier = _function.GetNextVariableName();
+                var extOp = toConvert.PrimitiveEnum.IsSignedInteger()
+                    ? QbeConversionOperation.ExtendSignedWord
+                    : QbeConversionOperation.ExtendUnsignedWord;
+                Instructions.Add(new ConversionInstruction(identifier, toConvert, extOp));
+                intermediate = new QbeLocalRef(QbePrimitive.Int64(toConvert.PrimitiveEnum.IsSignedInteger()),
+                    identifier);
+            }
+
+            // Then cast to float
+            QbeValue floatValue = null;
+            var floatIdent = _function.GetNextVariableName();
+            var floatOp = intermediate!.PrimitiveEnum.IsSignedInteger()
+                ? QbeConversionOperation.SignedLongToFloat
+                : QbeConversionOperation.UnsignedLongToFloat;
+            Instructions.Add(new ConversionInstruction(floatIdent, intermediate, floatOp));
+            floatValue = new QbeLocalRef(QbePrimitive.Float(), floatIdent);
+
+            // Then if the target type is double, extend the single to double.
+            if (targetType.ByteSize(false) == 8)
+            {
+                var doubleIdentifier = _function.GetNextVariableName();
+                Instructions.Add(new ConversionInstruction(doubleIdentifier, floatValue,
+                    QbeConversionOperation.ExtendSingle));
+                return new QbeLocalRef(QbePrimitive.Double(), doubleIdentifier);
+            }
+            return floatValue;
         }
         else if (isFloatingPoint)
         {

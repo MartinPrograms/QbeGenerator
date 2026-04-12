@@ -28,6 +28,8 @@ public class QbeAggregateType : IQbeTypeDefinition
 
     public string ToQbeString(bool is32bit, bool isAggregate = false)
     {
+        if (isAggregate)
+            return Qbe.TypeDef(Identifier);
         return QbePrimitive.Pointer().ToQbeString(is32bit);
     }
 
@@ -108,6 +110,52 @@ public class QbeAggregateType : IQbeTypeDefinition
             var member = _members[i];
             sb.AppendLine($"  [{i}] Offset: {GetOffset(i, is32Bit)} bytes, Type: {member.Type.ToQbeString(is32Bit)}");
         }
+        return sb.ToString();
+    }
+
+    /*
+     * Aggregate Types
+       
+       TYPEDEF :=
+           # Regular type
+           'type' :IDENT '=' ['align' NUMBER]
+           '{'
+               ( SUBTY [NUMBER] ),
+           '}'
+         | # Union type
+           'type' :IDENT '=' ['align' NUMBER]
+           '{'
+               (
+                   '{'
+                       ( SUBTY [NUMBER] ),
+                   '}'
+               )+
+           '}'
+         | # Opaque type
+           'type' :IDENT '=' 'align' NUMBER '{' NUMBER '}'
+       
+       SUBTY := EXTTY | :IDENT
+       
+     */
+    public string Emit(bool is32Bit)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append($"type {Qbe.TypeDef(Identifier)} = ");
+        
+        if (_members.Count == 0)
+        {
+            sb.Append($"align {Align} {{ 0 }}");
+        }
+        else
+        {
+            sb.Append($"align {GetAlignment(is32Bit)} {{\n");
+            foreach (var member in _members)
+            {
+                sb.AppendLine($"    {member.Type.ToQbeString(is32Bit)},");
+            }
+            sb.Append("}");
+        }
+        
         return sb.ToString();
     }
 }

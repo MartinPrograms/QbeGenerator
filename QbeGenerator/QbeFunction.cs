@@ -68,7 +68,7 @@ public class QbeFunction
         {
             varArgsStr = VarArgs ? ", ..." : string.Empty;
         }
-        
+
         StringBuilder sb = new StringBuilder();
         sb.AppendLine(
             $"{flagsStr}function {(ReturnType != null ? ReturnType!.ToQbeString(is32Bit) + " " : string.Empty)}${Identifier}({string.Join(", ", Arguments.Select(x => x.FullDefinition(is32Bit)))}{varArgsStr}) {{");

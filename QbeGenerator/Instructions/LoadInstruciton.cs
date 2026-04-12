@@ -14,11 +14,19 @@ public class LoadInstruciton : IQbeInstruction
         Reference = reference;
         OutputVariableName = outputName;
     }
-    
+
     public string Emit(bool is32bit)
     {
         var refstr = Reference.GetValue();
 
-        return $"%{OutputVariableName} ={PrimitiveEnum.ToQbeString(is32bit)} {QbeRepresentation}{PrimitiveEnum.ToQbeString(is32bit)} {refstr}";
+        if (PrimitiveEnum.ByteSize(is32bit) < 4)
+        {
+            return
+                $"%{OutputVariableName} ={QbePrimitive.Int32(PrimitiveEnum.IsSignedInteger()).ToQbeString(is32bit)} {QbeRepresentation}{(PrimitiveEnum.IsSignedInteger() ? "s" : "u")}{PrimitiveEnum.ToQbeString(is32bit)} {refstr}";
+        }
+
+        return
+            $"%{OutputVariableName} ={PrimitiveEnum.ToQbeString(is32bit)} {QbeRepresentation}{PrimitiveEnum.ToQbeString(is32bit)} {refstr}";
+
     }
 }

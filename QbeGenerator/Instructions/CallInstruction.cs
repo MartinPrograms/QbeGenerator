@@ -31,7 +31,7 @@ public class CallInstruction : IQbeInstruction
         for (int i = 0; i < Arguments.Count; i++)
         {
             var arg = Arguments[i];
-            sb.Append($"{arg.PrimitiveEnum.ToQbeString(is32bit)} {arg.GetValue()}");
+            sb.Append($"{arg.PrimitiveEnum.ToQbeString(is32bit, true)} {arg.GetValue()}");
             
             if (i == VariadicStart - 1 && VariadicStart != Arguments.Count)
                 sb.Append(", ...");

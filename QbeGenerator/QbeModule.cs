@@ -10,7 +10,6 @@ public class QbeModule
     
     private List<QbeGlobal> _globals;
     private List<QbeFunction> _functions;
-    private List<QbeFunction> _externals;
     public bool Is32Bit = false;
 
     public QbeModule(bool is32bit = false)
@@ -20,7 +19,6 @@ public class QbeModule
         _types = new List<QbeAggregateType>();
         _globals = new List<QbeGlobal>();
         _functions = new List<QbeFunction>();
-        _externals = new List<QbeFunction>();
     }
 
     public QbeFunction AddFunction(string identifier, QbeFunctionFlags flags, IQbeTypeDefinition? retType, bool isVarArg = false,
@@ -57,6 +55,18 @@ public class QbeModule
     {
         StringBuilder sb = new StringBuilder();
         
+        QbeTypeSorter typeSorter = new QbeTypeSorter();
+        foreach (var type in _types)
+        {
+            typeSorter.AddType(type);
+        }
+        
+        var sorted = typeSorter.SortTypes();
+        foreach (var type in sorted)
+        {
+            sb.AppendLine(type.Emit(Is32Bit));
+        }
+
         foreach (var global in _globals)
         {
             sb.AppendLine(global.Emit(Is32Bit));
@@ -85,9 +95,17 @@ public class QbeModule
         return aggregateType;
     }
     
+    public QbeAggregateType AddType(QbeAggregateType aggregateType)
+    {
+        _types.Add(aggregateType);
+        return aggregateType;
+    }
+    
     private long _identifierCounter = 0;
     public string GetNextIdentifier()
     {
         return $"global_var{_identifierCounter++}";
     }
+
+    public bool HasFunction(string qbeIdentifier) => _functions.Any(f => f.Identifier == qbeIdentifier);
 }
